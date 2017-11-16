@@ -11,7 +11,7 @@ import Cocoa
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
-    let statusItem = NSStatusBar.system().statusItem(withLength: NSSquareStatusItemLength)
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     
     var autoUpdateMenuItem: NSMenuItem?
     var launchAtStartupMenuItem: NSMenuItem?
@@ -26,8 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         WallPaperSevice.sharedInstance.updateAndSetNewestBingWallPaper { (success) in}
         
         // Set Wake from sleep notification
-        NSWorkspace.shared().notificationCenter.addObserver(self, selector:
-            #selector(didWakeFromSleep), name: NSNotification.Name.NSWorkspaceDidWake, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector:
+            #selector(didWakeFromSleep), name: NSWorkspace.didWakeNotification, object: nil)
         
         // Check if need update
         WallPaperSevice.sharedInstance.checkIfNeedUpdateWallPaper()
@@ -41,7 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func configStatusButton() {
         if let button = statusItem.button {
-            button.image = NSImage(named: "menu_icon")
+            button.image = NSImage(named: NSImage.Name(rawValue: "menu_icon"))
         }
     }
     
@@ -60,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Auto update
         autoUpdateMenuItem = NSMenuItem(title: "Auto Update", action: #selector(menuItemAutoUpdateClick), keyEquivalent: "")
         autoUpdateMenuItem?.toolTip = "Auto update newest Microsoft Bing Daily wallpaper."
-        autoUpdateMenuItem?.onStateImage = NSImage(named: "checked")
+        autoUpdateMenuItem?.onStateImage = NSImage(named: NSImage.Name(rawValue: "checked"))
         autoUpdateMenuItem?.offStateImage = nil
         updateAutoUpdateMenuItemState()
         subMenu.addItem(autoUpdateMenuItem!)
@@ -68,7 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Launch at startup
         launchAtStartupMenuItem = NSMenuItem(title: "Launch at login", action: #selector(menuItemLaunchAtStartupClick), keyEquivalent: "")
         launchAtStartupMenuItem?.toolTip = "Config BingWallPaper launch at startup."
-        launchAtStartupMenuItem?.onStateImage = NSImage(named: "checked")
+        launchAtStartupMenuItem?.onStateImage = NSImage(named: NSImage.Name(rawValue: "checked"))
         launchAtStartupMenuItem?.offStateImage = nil
         updateLaunchAtStartupMenuItemState()
         subMenu.addItem(launchAtStartupMenuItem!)
@@ -81,6 +81,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Github
         subMenu.addItem(withTitle: "Github", action: #selector(menuItemGithubClick), keyEquivalent: "");
+        
+        // Info
+        subMenu.addItem(withTitle: "Info", action: #selector(menuItemInfoClick), keyEquivalent: "");
         
         // About
         subMenu.addItem(withTitle: "About", action: #selector(menuItemAboutClick), keyEquivalent: "")
@@ -99,14 +102,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     // MARK: Actions
     
-    func menuItemLaunchAtStartupClick() {
+    @objc func menuItemLaunchAtStartupClick() {
         StartupHelper.toggleLaunchAtStartup()
         updateLaunchAtStartupMenuItemState()
         
         UserNotificationHelper.show("Config changed !", subTitle: "Launch at startup: \(StartupHelper.applicationIsInStartUpItems() ? "ON" : "OFF")", content: "")
     }
     
-    func menuItemAutoUpdateClick() {
+    @objc func menuItemAutoUpdateClick() {
         let state = WallPaperSevice.sharedInstance.currentAutoUpadteSwitchState
         
         UserNotificationHelper.show("Config changed !", subTitle:  "Auto update: \(!state ? "ON" : "OFF")", content: "")
@@ -117,37 +120,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateAutoUpdateMenuItemState()
     }
     
-    func menuItemNewestWallPaperClick() {
+    @objc func menuItemNewestWallPaperClick() {
         WallPaperSevice.sharedInstance.updateAndSetNewestBingWallPaper { (success) in
             UserNotificationHelper.showWallPaperUpdateInfoWithModel()
         }
     }
 
-    func menuItemRandomWallPaperClick() {
+    @objc func menuItemRandomWallPaperClick() {
         WallPaperSevice.sharedInstance.updateAndSetRandomBingWallPaper { (success) in
             UserNotificationHelper.showWallPaperUpdateInfoWithModel()
         }
     }
     
-    func menuItemOpenWallPapersFolderClick() {
+    @objc func menuItemOpenWallPapersFolderClick() {
         if let folderPath = WallPaperSevice.sharedInstance.imagesFolderLocation {
-            NSWorkspace.shared().open(folderPath as URL)
+            NSWorkspace.shared.open(folderPath as URL)
         }
     }
     
-    func menuItemCopyrightClick() {
+    @objc func menuItemCopyrightClick() {
         if let copyrightUrl = URL(string: WallPaperSevice.sharedInstance.currentModel?.copyRightUrl ?? WallPaperAPIManager.BingHost) {
-            NSWorkspace.shared().open(copyrightUrl)
+            NSWorkspace.shared.open(copyrightUrl)
         }
     }
     
-    func menuItemGithubClick() {
+    @objc func menuItemGithubClick() {
         if let githubUrl = URL(string: "https://github.com/zekunyan/TTGBingWallPaper") {
-            NSWorkspace.shared().open(githubUrl)
+            NSWorkspace.shared.open(githubUrl)
         }
     }
     
-    func menuItemAboutClick() {
+    @objc func menuItemInfoClick() {
+        UserNotificationHelper.showWallPaperUpdateInfoWithModel()
+    }
+    
+    @objc func menuItemAboutClick() {
         let contentTextView = NSTextView()
         
         contentTextView.frame = CGRect(x: 0, y: 0, width: 300, height: 60)
@@ -165,15 +172,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let alert = NSAlert()
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
 
-        alert.icon = NSImage(named: "AppIcon")
+        alert.icon = NSImage(named: NSImage.Name(rawValue: "AppIcon"))
         alert.messageText = "BingWallPaper \(version)"
         alert.accessoryView = contentTextView
         alert.alertStyle = .informational
         alert.runModal()
     }
     
-    func menuItemQuitClick() {
-        NSApplication.shared().terminate(nil)
+    @objc func menuItemQuitClick() {
+        NSApplication.shared.terminate(nil)
     }
     
     // MARK: NSWorkspaceDidWakeNotification
@@ -185,11 +192,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: Private methods
     
     fileprivate func updateAutoUpdateMenuItemState() {
-        autoUpdateMenuItem?.state = WallPaperSevice.sharedInstance.currentAutoUpadteSwitchState ? 1 : 0
+        autoUpdateMenuItem?.state = NSControl.StateValue(rawValue: WallPaperSevice.sharedInstance.currentAutoUpadteSwitchState ? 1 : 0)
     }
     
     fileprivate func updateLaunchAtStartupMenuItemState() {
-        launchAtStartupMenuItem?.state = StartupHelper.applicationIsInStartUpItems() ? 1 : 0
+        launchAtStartupMenuItem?.state = NSControl.StateValue(rawValue: StartupHelper.applicationIsInStartUpItems() ? 1 : 0)
     }
 }
 

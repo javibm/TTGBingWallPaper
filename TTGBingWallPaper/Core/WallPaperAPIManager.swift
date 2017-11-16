@@ -56,19 +56,24 @@ class WallPaperAPIManager {
      - parameter complete: complete callback
      */
     fileprivate static func getBingWallPaperWithUrl(_ url: URL, complete: @escaping (_ model:WallPaper?) -> Void) -> Void {
+        
         URLSession.shared.dataTask(with: url, completionHandler: {
             (data, response, error) in
             guard let _: Data = data else {
                 complete(nil)
                 return
             }
-            
-            let json = JSON(data: data!)
-            if json["images"].arrayValue.count > 0 {
-                let model = WallPaper(jsonObject: json["images"].arrayValue.first!)
-                complete(model)
-            } else {
-                complete(nil)
+            do {
+                let json = try JSON(data: data!)
+                    if json["images"].arrayValue.count > 0 {
+                        let model = WallPaper(jsonObject: json["images"].arrayValue.first!)
+                        complete(model)
+                    } else {
+                        complete(nil)
+                    }
+                }
+            catch{
+                print("Error!")
             }
         }).resume()
     }
